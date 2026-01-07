@@ -4,7 +4,7 @@ flutter_rust_bridge = "=2.11.1"
 [dependencies.mopro-example-app-noir]
 default-features = false
 features = ["flutter"]
-path = "/Users/zhengyawen/Documents/GitHub/mopro-example-app-noir"
+git = "https://github.com/zkmopro/mopro-example-app-noir"
 version = "0.1.0"
 
 [lib]
