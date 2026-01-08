@@ -19,30 +19,20 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
-  CircomProofResult? _circomProofResult;
-  Halo2ProofResult? _halo2ProofResult;
   Uint8List? _noirProofResult;
   Uint8List? _noirVerificationKey;
-  bool? _circomValid;
-  bool? _halo2Valid;
   bool? _noirValid;
   bool isProving = false;
   Exception? _error;
   late TabController _tabController;
 
   // Controllers to handle user input
-  final TextEditingController _controllerA = TextEditingController();
-  final TextEditingController _controllerB = TextEditingController();
-  final TextEditingController _controllerOut = TextEditingController();
   final TextEditingController _controllerNoirA = TextEditingController();
   final TextEditingController _controllerNoirB = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _controllerA.text = "5";
-    _controllerB.text = "3";
-    _controllerOut.text = "55";
     _controllerNoirA.text = "5";
     _controllerNoirB.text = "3";
     _tabController = TabController(length: 3, vsync: this);
@@ -52,303 +42,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  Widget _buildCircomTab() {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (isProving) const CircularProgressIndicator(),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(_error.toString()),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              controller: _controllerA,
-              decoration: const InputDecoration(
-                labelText: "Public input `a`",
-                hintText: "For example, 5",
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              controller: _controllerB,
-              decoration: const InputDecoration(
-                labelText: "Private input `b`",
-                hintText: "For example, 3",
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: OutlinedButton(
-                    onPressed: () async {
-                      if (_controllerA.text.isEmpty ||
-                          _controllerB.text.isEmpty ||
-                          isProving) {
-                        return;
-                      }
-                      setState(() {
-                        _error = null;
-                        isProving = true;
-                      });
-
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      CircomProofResult? proofResult;
-                      try {
-                        var inputs =
-                            '{"a":["${_controllerA.text}"],"b":["${_controllerB.text}"]}';
-                        final zkeyPath = await copyAssetToFileSystem(
-                            'assets/multiplier2_final.zkey');
-                        proofResult = await generateCircomProof(
-                            zkeyPath: zkeyPath,
-                            circuitInputs: inputs,
-                            proofLib: ProofLib
-                                .arkworks); // DO NOT change the proofLib if you don't build for rapidsnark
-                      } on Exception catch (e) {
-                        print("Error: $e");
-                        proofResult = null;
-                        setState(() {
-                          _error = e;
-                        });
-                      }
-
-                      if (!mounted) return;
-
-                      setState(() {
-                        isProving = false;
-                        _circomProofResult = proofResult;
-                      });
-                    },
-                    child: const Text("Generate Proof")),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: OutlinedButton(
-                    onPressed: () async {
-                      if (_controllerA.text.isEmpty ||
-                          _controllerB.text.isEmpty ||
-                          isProving) {
-                        return;
-                      }
-                      setState(() {
-                        _error = null;
-                        isProving = true;
-                      });
-
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      bool? valid;
-                      try {
-                        var proofResult = _circomProofResult;
-                        final zkeyPath = await copyAssetToFileSystem(
-                            'assets/multiplier2_final.zkey');
-                        valid = await verifyCircomProof(
-                            zkeyPath: zkeyPath,
-                            proofResult: proofResult!,
-                            proofLib: ProofLib
-                                .arkworks); // DO NOT change the proofLib if you don't build for rapidsnark
-                      } on Exception catch (e) {
-                        print("Error: $e");
-                        valid = false;
-                        setState(() {
-                          _error = e;
-                        });
-                      } on TypeError catch (e) {
-                        print("Error: $e");
-                        valid = false;
-                        setState(() {
-                          _error = Exception(e.toString());
-                        });
-                      }
-
-                      if (!mounted) return;
-
-                      setState(() {
-                        isProving = false;
-                        _circomValid = valid;
-                      });
-                    },
-                    child: const Text("Verify Proof")),
-              ),
-            ],
-          ),
-          if (_circomProofResult != null)
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Proof is valid: ${_circomValid ?? false}'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child:
-                      Text('Proof inputs: ${_circomProofResult?.inputs ?? ""}'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Proof: ${_circomProofResult?.proof ?? ""}'),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHalo2Tab() {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (isProving) const CircularProgressIndicator(),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(_error.toString()),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              controller: _controllerOut,
-              decoration: const InputDecoration(
-                labelText: "Public input `out`",
-                hintText: "For example, 55",
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: OutlinedButton(
-                    onPressed: () async {
-                      if (_controllerOut.text.isEmpty || isProving) {
-                        return;
-                      }
-                      setState(() {
-                        _error = null;
-                        isProving = true;
-                      });
-
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      Halo2ProofResult? halo2ProofResult;
-                      try {
-                        var inputs = {
-                          "out": [(_controllerOut.text)]
-                        };
-                        final srsPath = await copyAssetToFileSystem(
-                            'assets/plonk_fibonacci_srs.bin');
-                        final pkPath = await copyAssetToFileSystem(
-                            'assets/plonk_fibonacci_pk.bin');
-                        halo2ProofResult = await generateHalo2Proof(
-                          srsPath: srsPath,
-                          pkPath: pkPath,
-                          circuitInputs: inputs,
-                        );
-                      } on Exception catch (e) {
-                        print("Error: $e");
-                        halo2ProofResult = null;
-                        setState(() {
-                          _error = e;
-                        });
-                      }
-
-                      if (!mounted) return;
-
-                      setState(() {
-                        isProving = false;
-                        _halo2ProofResult = halo2ProofResult;
-                      });
-                    },
-                    child: const Text("Generate Proof")),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: OutlinedButton(
-                    onPressed: () async {
-                      if (_controllerOut.text.isEmpty || isProving) {
-                        return;
-                      }
-                      setState(() {
-                        _error = null;
-                        isProving = true;
-                      });
-
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      bool? valid;
-                      try {
-                        var proofResult = _halo2ProofResult;
-                        final srsPath = await copyAssetToFileSystem(
-                            'assets/plonk_fibonacci_srs.bin');
-                        final vkPath = await copyAssetToFileSystem(
-                            'assets/plonk_fibonacci_vk.bin');
-                        valid = await verifyHalo2Proof(
-                            srsPath: srsPath,
-                            vkPath: vkPath,
-                            proof: proofResult!.proof,
-                            publicInput: proofResult.inputs,
-                          );
-                      } on Exception catch (e) {
-                        print("Error: $e");
-                        valid = false;
-                        setState(() {
-                          _error = e;
-                        });
-                      } on TypeError catch (e) {
-                        print("Error: $e");
-                        valid = false;
-                        setState(() {
-                          _error = Exception(e.toString());
-                        });
-                      }
-
-                      if (!mounted) return;
-
-                      setState(() {
-                        _halo2Valid = valid;
-                        isProving = false;
-                      });
-                    },
-                    child: const Text("Verify Proof")),
-              ),
-            ],
-          ),
-          if (_halo2ProofResult != null)
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Proof is valid: ${_halo2Valid ?? false}'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child:
-                      Text('Proof inputs: ${_halo2ProofResult?.inputs ?? ""}'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Proof: ${_halo2ProofResult?.proof ?? ""}'),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
   }
 
   Widget _buildNoirTab() {
@@ -561,8 +254,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
           bottom: TabBar(
             controller: _tabController,
             tabs: const [
-              Tab(text: 'Circom'),
-              Tab(text: 'Halo2'),
               Tab(text: 'Noir'),
             ],
           ),
@@ -570,8 +261,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         body: TabBarView(
           controller: _tabController,
           children: [
-            _buildCircomTab(),
-            _buildHalo2Tab(),
             _buildNoirTab(),
           ],
         ),
