@@ -1934,6 +1934,7 @@ dependencies = [
 [[package]]
 name = "mopro-example-app-noir"
 version = "0.1.0"
+source = "git+https://github.com/zkmopro/mopro-example-app-noir#50d5902eac159f835a574b2be25547ae8925a5de"
 dependencies = [
  "anyhow",
  "mopro-ffi",
