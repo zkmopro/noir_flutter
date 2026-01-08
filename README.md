@@ -11,14 +11,14 @@ To learn more about the original Rust implementation before generating bindings,
 ### Adding a package dependency to an app
 
 1.  **Manual Edit (Required for local path or specific Git dependencies):**
-    Open your `pubspec.yaml` file and add `mopro_flutter_bindings` under `dependencies`.
+    Open your `pubspec.yaml` file and add `noir_flutter` under `dependencies`.
 
           ```yaml
           dependencies:
               flutter:
                   sdk: flutter
 
-              mopro_flutter_bindings:
+              noir_flutter:
                   git:
                       url: https://github.com/zkmopro/noir_flutter
               # Or
@@ -52,8 +52,8 @@ To learn more about the original Rust implementation before generating bindings,
 ### Import the package
 
 ```dart
-import 'package:mopro_flutter_bindings/src/rust/third_party/mopro_example_app_noir.dart';
-import 'package:mopro_flutter_bindings/src/rust/frb_generated.dart';
+import 'package:noir_flutter/src/rust/third_party/mopro_example_app_noir.dart';
+import 'package:noir_flutter/src/rust/frb_generated.dart';
 ```
 
 Update the main function to initialize the Rust library before running the app:

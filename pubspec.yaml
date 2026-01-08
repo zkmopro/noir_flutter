@@ -1,5 +1,5 @@
-name: mopro_flutter_bindings
-description: "A new Flutter FFI plugin project."
+name: noir_flutter
+description: "A Flutter package for generating and verifying Noir zero-knowledge proofs using the Barretenberg backend."
 version: 0.0.1
 homepage:
 

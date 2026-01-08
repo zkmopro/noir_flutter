@@ -12,8 +12,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:mopro_flutter_bindings/src/rust/third_party/test_e2e.dart';
-import 'package:mopro_flutter_bindings/src/rust/frb_generated.dart';
+import 'package:noir_flutter/src/rust/third_party/test_e2e.dart';
+import 'package:noir_flutter/src/rust/frb_generated.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

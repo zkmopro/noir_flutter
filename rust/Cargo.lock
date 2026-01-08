@@ -1969,14 +1969,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mopro_flutter_bindings"
-version = "0.1.0"
-dependencies = [
- "flutter_rust_bridge",
- "mopro-example-app-noir",
-]
-
-[[package]]
 name = "multimap"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2031,6 +2023,14 @@ dependencies = [
  "thiserror 1.0.69",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "noir_flutter"
+version = "0.1.0"
+dependencies = [
+ "flutter_rust_bridge",
+ "mopro-example-app-noir",
 ]
 
 [[package]]

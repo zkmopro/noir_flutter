@@ -18,7 +18,7 @@ dependencies:
     sdk: flutter
 
   path_provider: ^2.1.4
-  mopro_flutter_bindings:
+  noir_flutter:
     # When depending on this package from a real application you should use:
     #   mopro_flutter: ^x.y.z
     # See https://dart.dev/tools/pub/dependencies#version-constraints

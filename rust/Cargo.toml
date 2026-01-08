@@ -19,7 +19,7 @@ level = "warn"
 
 [package]
 edition = "2021"
-name = "mopro_flutter_bindings"
+name = "noir_flutter"
 version = "0.1.0"
 
 [workspace]
