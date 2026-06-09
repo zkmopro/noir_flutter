@@ -9,6 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:version/version.dart';
 
+import 'barretenberg_android.dart';
 import 'target.dart';
 import 'util.dart';
 
@@ -96,8 +97,19 @@ class AndroidEnvironment {
       'bin',
     );
 
-    final minSdkVersion =
-        math.max(target.androidMinSdkVersion!, this.minSdkVersion);
+    // Noir/barretenberg crates need a per-arch prebuilt + Zig link and a
+    // minimum API of 30 (the prebuilt imports `__tls_get_addr`, API 29).
+    final manifestDir = Platform.environment['CARGOKIT_MANIFEST_DIR'];
+    final useBarretenberg = bbArchForTriple(target.rust) != null &&
+        manifestDir != null &&
+        crateUsesBarretenberg(manifestDir);
+
+    final minSdkVersion = useBarretenberg
+        ? math.max(
+            math.max(target.androidMinSdkVersion!, this.minSdkVersion),
+            barretenbergMinSdkVersion,
+          )
+        : math.max(target.androidMinSdkVersion!, this.minSdkVersion);
 
     final exe = Platform.isWindows ? '.exe' : '';
 
@@ -150,7 +162,7 @@ class AndroidEnvironment {
     final toolTempDir =
         Platform.environment['CARGOKIT_TOOL_TEMP_DIR'] ?? targetTempDir;
 
-    return {
+    final environment = {
       arKey: arValue,
       ccKey: ccValue,
       cfFlagsKey: cFlagsValue,
@@ -164,6 +176,22 @@ class AndroidEnvironment {
       '_CARGOKIT_NDK_LINK_CLANG': ccValue,
       'CARGOKIT_TOOL_TEMP_DIR': toolTempDir,
     };
+
+    if (useBarretenberg) {
+      // Pre-fetch the Android barretenberg prebuilt and swap the linker to a
+      // Zig `cc` wrapper. This overrides `linkerKey` (set to cargokit's
+      // NDK-clang wrapper above) for the Noir Android targets only.
+      environment.addAll(await barretenbergAndroidEnvironment(
+        rustTriple: target.rust,
+        manifestDir: manifestDir,
+        ndkPath: ndkPath,
+        hostArch: hostArch,
+        minSdkVersion: minSdkVersion,
+        buildDir: targetTempDir,
+      ));
+    }
+
+    return environment;
   }
 
   // Workaround for libgcc missing in NDK23, inspired by cargo-ndk

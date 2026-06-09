@@ -1,6 +1,6 @@
 name: noir_flutter
 description: "A Flutter package for generating and verifying Noir zero-knowledge proofs using the Barretenberg backend."
-version: 0.0.1
+version: 0.0.2
 homepage:
 
 environment:
