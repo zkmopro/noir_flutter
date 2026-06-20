@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:noir_flutter/src/rust/third_party/test_e2e.dart';
+import 'package:noir_flutter/src/rust/third_party/mopro_example_app_noir.dart';
 import 'package:noir_flutter/src/rust/frb_generated.dart';
 
 void main() {
@@ -20,41 +20,8 @@ void main() {
 
   setUpAll(() async => await RustLib.init());
 
-  testWidgets('Circom Proof Test', (WidgetTester tester) async {
-    const inputs = "{\"a\":[\"3\"],\"b\":[\"5\"]}";
-    final zkeyPath =
-        await copyAssetToFileSystem('assets/multiplier2_final.zkey');
-    final CircomProofResult proofResult = await generateCircomProof(
-        zkeyPath: zkeyPath, circuitInputs: inputs, proofLib: ProofLib.arkworks);
-    final bool isValid = await verifyCircomProof(
-        zkeyPath: zkeyPath,
-        proofResult: proofResult,
-        proofLib: ProofLib.arkworks);
-    expect(isValid, isTrue);
-  });
-
-  testWidgets('Halo2 Proof Test', (WidgetTester tester) async {
-    var inputs = {
-      "out": ["55"]
-    };
-    final srsPath =
-        await copyAssetToFileSystem('assets/plonk_fibonacci_srs.bin');
-    final pkPath = await copyAssetToFileSystem('assets/plonk_fibonacci_pk.bin');
-    final Halo2ProofResult proofResult = await generateHalo2Proof(
-      srsPath: srsPath,
-      pkPath: pkPath,
-      circuitInputs: inputs,
-    );
-    final vkPath = await copyAssetToFileSystem('assets/plonk_fibonacci_vk.bin');
-    final bool isValid = await verifyHalo2Proof(
-      srsPath: srsPath,
-      vkPath: vkPath,
-      proof: proofResult.proof,
-      publicInput: proofResult.inputs,
-    );
-    expect(isValid, isTrue);
-  });
-
+  // noir_flutter wraps the Noir-only mopro-example-app-noir crate (Circom and
+  // Halo2 are non-functional stubs), so only the Noir proof path is exercised.
   testWidgets('Noir Proof Test', (WidgetTester tester) async {
     var inputs = ["5", "3"];
     // Constants for Noir proof generation

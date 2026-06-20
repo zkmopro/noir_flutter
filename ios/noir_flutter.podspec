@@ -38,8 +38,11 @@ A new Flutter FFI plugin project.
   }
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
-    # Flutter.framework does not contain a i386 slice.
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386',
-    'OTHER_LDFLAGS' => '-force_load ${BUILT_PRODUCTS_DIR}/libnoir_flutter.a -lc++',
+    # Flutter.framework has no i386 slice; barretenberg-rs (noir v1.0.0-beta.19)
+    # ships no x86_64-apple-ios prebuilt, so the Intel iOS simulator is unsupported.
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386 x86_64',
+    # The barretenberg prebuilt leaves libdeflate (`_libdeflate_*`) undefined; it is
+    # provided by the system dyld cache at runtime, so defer it at link time.
+    'OTHER_LDFLAGS' => '-force_load ${BUILT_PRODUCTS_DIR}/libnoir_flutter.a -lc++ -undefined dynamic_lookup',
   }
 end
