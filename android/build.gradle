@@ -45,7 +45,9 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 19
+        // barretenberg prebuilt (noir-rs beta.19) imports __tls_get_addr (API 29);
+        // consumers of this plugin must use minSdk >= 30.
+        minSdkVersion 30
     }
 }
 
