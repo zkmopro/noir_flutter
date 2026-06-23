@@ -45,9 +45,8 @@ android {
     }
 
     defaultConfig {
-        // noir-rs v1.0.0-beta.19's barretenberg prebuilt imports symbols above
-        // API 21 (e.g. __tls_get_addr / API 29); 30 matches the mopro CLI's
-        // Noir Android build. Apps consuming this plugin must use minSdk >= 30.
+        // barretenberg prebuilt (noir-rs beta.19) imports __tls_get_addr (API 29);
+        // consumers of this plugin must use minSdk >= 30.
         minSdkVersion 30
     }
 }

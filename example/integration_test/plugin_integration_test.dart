@@ -20,8 +20,7 @@ void main() {
 
   setUpAll(() async => await RustLib.init());
 
-  // noir_flutter wraps the Noir-only mopro-example-app-noir crate (Circom and
-  // Halo2 are non-functional stubs), so only the Noir proof path is exercised.
+  // Noir-only crate (Circom/Halo2 are stubs) — exercise just the Noir path.
   testWidgets('Noir Proof Test', (WidgetTester tester) async {
     var inputs = ["5", "3"];
     // Constants for Noir proof generation

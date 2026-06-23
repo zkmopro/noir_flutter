@@ -97,8 +97,8 @@ class AndroidEnvironment {
       'bin',
     );
 
-    // Noir/barretenberg crates need a per-arch prebuilt + Zig link and a
-    // minimum API of 30 (the prebuilt imports `__tls_get_addr`, API 29).
+    // Noir/barretenberg crates need a prebuilt + Zig link and min API 30
+    // (see barretenberg_android.dart).
     final manifestDir = Platform.environment['CARGOKIT_MANIFEST_DIR'];
     final useBarretenberg = bbArchForTriple(target.rust) != null &&
         manifestDir != null &&
@@ -178,9 +178,8 @@ class AndroidEnvironment {
     };
 
     if (useBarretenberg) {
-      // Pre-fetch the Android barretenberg prebuilt and swap the linker to a
-      // Zig `cc` wrapper. This overrides `linkerKey` (set to cargokit's
-      // NDK-clang wrapper above) for the Noir Android targets only.
+      // For Noir Android targets, override the linker set above with a Zig `cc`
+      // wrapper and point BB_LIB_DIR at the prebuilt.
       environment.addAll(await barretenbergAndroidEnvironment(
         rustTriple: target.rust,
         manifestDir: manifestDir,

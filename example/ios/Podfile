@@ -42,11 +42,10 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
-      # noir v1.0.0-beta.19 dropped x86_64-apple-ios; the app target must match the
-      # noir_flutter pod and build the simulator for arm64 only.
+      # beta.19 ships no x86_64-apple-ios prebuilt — build the simulator arm64 only.
       config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'x86_64'
-      # The barretenberg prebuilt leaves _libdeflate_* undefined (system dyld cache
-      # resolves them at runtime); defer them rather than failing the static link.
+      # barretenberg leaves _libdeflate_* undefined (resolved by the dyld cache at
+      # runtime); defer them rather than failing the static link.
       ldflags = config.build_settings['OTHER_LDFLAGS'] || ['$(inherited)']
       ldflags = [ldflags] if ldflags.is_a?(String)
       config.build_settings['OTHER_LDFLAGS'] = ldflags + ['-undefined', 'dynamic_lookup']

@@ -1,29 +1,16 @@
-/// Noir / barretenberg-specific Android build setup for cargokit.
+/// Noir / barretenberg Android build for cargokit — the flutter_rust_bridge
+/// analogue of mopro's `cli/src/build/android_noir.rs` (noir_flutter builds via
+/// cargokit, so it can't inherit mopro's fix).
 ///
-/// This is the cargokit/flutter_rust_bridge analogue of mopro's
-/// `cli/src/build/android_noir.rs`. noir_flutter builds its Rust through
-/// cargokit instead of the mopro CLI, so it does not inherit mopro's Android
-/// fix and must replicate it here.
+/// `barretenberg-rs`'s `build.rs` picks its prebuilt by substring-matching the
+/// target triple and matches `linux` before `android`, so `x86_64-linux-android`
+/// pulls the glibc build and the resulting `.so` fails `dlopen`. Fix: pre-fetch
+/// the correct `barretenberg-static-<arch>-android` prebuilt, expose it via
+/// `BB_LIB_DIR`, and run the final link through Zig (the prebuilt's libc++ is
+/// `std::__1`, the NDK's is `std::__ndk1` — ABI-incompatible).
 ///
-/// Why this is needed: `barretenberg-rs`'s `build.rs` chooses its prebuilt by
-/// substring-matching the target triple, with the `linux` arm *before*
-/// `android`. `x86_64-linux-android` contains `linux`, so it downloads the
-/// glibc / libstdc++ build and links it into the Android `.so`; `dlopen` then
-/// fails at runtime (`__libc_single_threaded`, `std::__cxx11::*`).
-///
-/// `barretenberg-rs` honors `BB_LIB_DIR` ahead of its own download, so we
-/// pre-fetch the correct `barretenberg-static-<arch>-android` prebuilt, point
-/// `BB_LIB_DIR` at it, and link the result with Zig — the prebuilt's libc++ is
-/// `std::__1` and the NDK's is `std::__ndk1` (ABI-incompatible), so the NDK
-/// linker can't be used for the final link.
-///
-/// Unlike mopro (which also does a second NDK-linked build to recover the
-/// `.symtab` uniffi-bindgen reads), flutter_rust_bridge generates its bindings
-/// from the Rust *source*, not the compiled library, so no second build is
-/// needed.
-///
-/// Requirements: `zig` (>= 0.13) and the Android NDK on `PATH`. The minimum
-/// Android API is raised to 30 (the prebuilt imports `__tls_get_addr`, API 29).
+/// Requires `zig` (>= 0.13) and the Android NDK on `PATH`; min API 30 (the
+/// prebuilt imports `__tls_get_addr`, API 29).
 library;
 
 import 'dart:io';
@@ -139,9 +126,8 @@ Future<String> _downloadBarretenbergAndroidLib(
   String version,
   String buildDir,
 ) async {
-  // Cache key includes the version: a noir-rs bump changes the prebuilt and
-  // `buildDir` is not wiped between builds, so an arch-only key would relink a
-  // stale `.a`.
+  // Version is part of the cache key: `buildDir` isn't wiped between builds, so
+  // an arch-only key would relink a stale `.a` after a noir-rs bump.
   final dest =
       path.join(buildDir, 'bb-android-prebuilt', '$bbArch-$version');
   final lib = File(path.join(dest, 'libbb-external.a'));
@@ -232,9 +218,8 @@ String _writeZigLinkerWrapper({
     'gcc_dir=\n',
   );
 
-  // `zig cc` bakes in Zig's static `__1` libc++ (resolving barretenberg's
-  // `-lc++`); the trailing `-lc++_shared` keeps the NDK's `__ndk1` libc++ for
-  // other C++.
+  // `zig cc` provides the `__1` libc++ for barretenberg's `-lc++`; the trailing
+  // `-lc++_shared` keeps the NDK's `__ndk1` libc++ for other C++.
   final wrapper = File(path.join(outDir.path, 'zig-android-cc-$rustTriple.sh'));
   wrapper.writeAsStringSync(
     '#!/bin/sh\n'
